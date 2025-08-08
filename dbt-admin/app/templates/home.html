@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-xl font-semibold mb-4">Projects</h1>
+<div class="grid gap-4 grid-cols-1 md:grid-cols-2">
+  {% for project in projects %}
+  <a href="/projects/{{ project.id }}" class="block rounded border border-slate-200 bg-white p-4 hover:shadow">
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="font-medium">{{ project.name }}</div>
+        <div class="text-sm text-slate-500">dbt {{ project.dbt_version }}</div>
+      </div>
+      <div class="text-sm text-slate-500">{{ project.root_path }}</div>
+    </div>
+  </a>
+  {% else %}
+  <div class="text-slate-500">No projects yet. Create one.</div>
+  {% endfor %}
+</div>
+{% endblock %}

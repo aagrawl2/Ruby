@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-xl font-semibold mb-4">New Project</h1>
+<form action="/projects" method="post" class="space-y-4 bg-white border border-slate-200 rounded p-4 max-w-2xl">
+  <div>
+    <label class="block text-sm font-medium">Name</label>
+    <input name="name" required class="mt-1 w-full rounded border-slate-300" />
+  </div>
+  <div>
+    <label class="block text-sm font-medium">Project Root Path</label>
+    <input name="root_path" required placeholder="/absolute/path/to/dbt_project" class="mt-1 w-full rounded border-slate-300" />
+  </div>
+  <div>
+    <label class="block text-sm font-medium">dbt-core Version</label>
+    <input name="dbt_version" required placeholder="e.g. 1.8.6" class="mt-1 w-full rounded border-slate-300" />
+  </div>
+  <div>
+    <label class="block text-sm font-medium">Profiles Dir (optional)</label>
+    <input name="profiles_dir" placeholder="/path/to/profiles" class="mt-1 w-full rounded border-slate-300" />
+  </div>
+  <div>
+    <label class="block text-sm font-medium">Extra Packages (optional)</label>
+    <input name="extra_packages" placeholder="Comma-separated, e.g. dbt-postgres==1.8.1" class="mt-1 w-full rounded border-slate-300" />
+  </div>
+  <div class="pt-2">
+    <button class="px-3 py-1.5 rounded bg-indigo-600 text-white">Create</button>
+  </div>
+</form>
+{% endblock %}

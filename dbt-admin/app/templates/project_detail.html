@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-xl font-semibold">{{ project.name }}</h1>
+  <form action="/projects/{{ project.id }}/delete" method="post" onsubmit="return confirm('Delete project?')">
+    <button class="px-3 py-1.5 rounded bg-rose-600 text-white">Delete</button>
+  </form>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <div class="lg:col-span-2 space-y-4">
+    <form action="/projects/{{ project.id }}/update" method="post" class="space-y-3 bg-white border border-slate-200 rounded p-4">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium">Name</label>
+          <input name="name" value="{{ project.name }}" class="mt-1 w-full rounded border-slate-300" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium">dbt-core Version</label>
+          <input name="dbt_version" value="{{ project.dbt_version }}" class="mt-1 w-full rounded border-slate-300" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Project Root Path</label>
+        <input name="root_path" value="{{ project.root_path }}" class="mt-1 w-full rounded border-slate-300" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium">Profiles Dir (optional)</label>
+          <input name="profiles_dir" value="{{ project.profiles_dir or '' }}" class="mt-1 w-full rounded border-slate-300" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Extra Packages (optional)</label>
+          <input name="extra_packages" value="{{ project.extra_packages or '' }}" class="mt-1 w-full rounded border-slate-300" />
+        </div>
+      </div>
+      <div class="pt-2 flex gap-2">
+        <button class="px-3 py-1.5 rounded bg-indigo-600 text-white">Save</button>
+        <form action="/projects/{{ project.id }}/install" method="post">
+          <button class="px-3 py-1.5 rounded bg-slate-700 text-white">Install / Update dbt</button>
+        </form>
+        <form action="/projects/{{ project.id }}/evaluate" method="post">
+          <button class="px-3 py-1.5 rounded bg-emerald-600 text-white">Evaluate</button>
+        </form>
+      </div>
+    </form>
+
+    <div class="bg-white border border-slate-200 rounded p-4">
+      <h2 class="font-medium mb-2">Recent Jobs</h2>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-slate-500">
+            <th class="py-1">ID</th>
+            <th class="py-1">Type</th>
+            <th class="py-1">Status</th>
+            <th class="py-1">Started</th>
+            <th class="py-1">Finished</th>
+            <th class="py-1">Logs</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for job in jobs %}
+          <tr class="border-t border-slate-200">
+            <td class="py-1">{{ job.id }}</td>
+            <td class="py-1">{{ job.job_type }}</td>
+            <td class="py-1">
+              {% if job.status == 'success' %}
+                <span class="text-emerald-700">{{ job.status }}</span>
+              {% elif job.status == 'failed' %}
+                <span class="text-rose-700">{{ job.status }}</span>
+              {% elif job.status == 'running' %}
+                <span class="text-amber-700">{{ job.status }}</span>
+              {% else %}
+                <span class="text-slate-700">{{ job.status }}</span>
+              {% endif %}
+            </td>
+            <td class="py-1">{{ job.started_at or '' }}</td>
+            <td class="py-1">{{ job.finished_at or '' }}</td>
+            <td class="py-1">
+              {% if job.log_path %}
+              <a class="text-indigo-600 underline" href="/jobs/{{ job.id }}/logs" target="_blank">View</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="space-y-4">
+    <div class="bg-white border border-slate-200 rounded p-4">
+      <h2 class="font-medium mb-2">Stats</h2>
+      {% if stats %}
+      <div class="grid grid-cols-2 gap-2 text-sm">
+        <div class="flex justify-between"><span>Models</span><span>{{ stats.models }}</span></div>
+        <div class="flex justify-between"><span>Tests</span><span>{{ stats.tests }}</span></div>
+        <div class="flex justify-between"><span>Snapshots</span><span>{{ stats.snapshots }}</span></div>
+        <div class="flex justify-between"><span>Analyses</span><span>{{ stats.analyses }}</span></div>
+        <div class="flex justify-between"><span>Seeds</span><span>{{ stats.seeds }}</span></div>
+        <div class="flex justify-between"><span>Sources</span><span>{{ stats.sources }}</span></div>
+        <div class="flex justify-between"><span>Macros</span><span>{{ stats.macros }}</span></div>
+        <div class="flex justify-between"><span>Exposures</span><span>{{ stats.exposures }}</span></div>
+        <div class="flex justify-between"><span>Metrics</span><span>{{ stats.metrics }}</span></div>
+        <div class="flex justify-between"><span>Packages</span><span>{{ stats.packages }}</span></div>
+      </div>
+      {% else %}
+      <div class="text-slate-500 text-sm">Run Evaluate to generate manifest and stats.</div>
+      {% endif %}
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded p-4 text-sm">
+      <h2 class="font-medium mb-2">Info</h2>
+      <div><span class="text-slate-500">Project Root:</span> {{ project.root_path }}</div>
+      <div><span class="text-slate-500">Profiles Dir:</span> {{ project.profiles_dir or '—' }}</div>
+      <div><span class="text-slate-500">dbt-core:</span> {{ project.dbt_version }}</div>
+      <div><span class="text-slate-500">Extra packages:</span> {{ project.extra_packages or '—' }}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

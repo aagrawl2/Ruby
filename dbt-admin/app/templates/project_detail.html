@@ -104,6 +104,35 @@
         <div class="flex justify-between"><span>Metrics</span><span>{{ stats.metrics }}</span></div>
         <div class="flex justify-between"><span>Packages</span><span>{{ stats.packages }}</span></div>
       </div>
+      <div class="mt-4">
+        <canvas id="statsChart" height="160"></canvas>
+      </div>
+      <script>
+        const statsData = {{ stats | tojson }};
+        const ctx = document.getElementById('statsChart');
+        if (ctx && statsData) {
+          const labels = ['Models','Tests','Snapshots','Analyses','Seeds','Sources','Macros','Exposures','Metrics','Packages'];
+          const values = labels.map(l => statsData[l.toLowerCase()]);
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Counts',
+                data: values,
+                borderWidth: 1,
+                backgroundColor: 'rgba(79, 70, 229, 0.5)',
+                borderColor: 'rgba(79, 70, 229, 1)'
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: { legend: { display: false } },
+              scales: { y: { beginAtZero: true } }
+            }
+          });
+        }
+      </script>
       {% else %}
       <div class="text-slate-500 text-sm">Run Evaluate to generate manifest and stats.</div>
       {% endif %}

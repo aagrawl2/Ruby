@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
+from types import SimpleNamespace
 
 from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
@@ -141,3 +142,45 @@ def get_job_logs(job_id: int):  # type: ignore[no-untyped-def]
         if not log_path.exists():
             raise HTTPException(status_code=404, detail="Logs not found")
     return FileResponse(path=str(log_path), media_type="text/plain")
+
+
+# Preview routes with mock data
+@app.get("/preview", response_class=HTMLResponse)
+def preview_home(request: Request):  # type: ignore[no-untyped-def]
+    projects = [
+        SimpleNamespace(id=1, name="Marketing Warehouse", dbt_version="1.8.6", root_path="/srv/dbt/marketing"),
+        SimpleNamespace(id=2, name="Finance Lakehouse", dbt_version="1.7.13", root_path="/srv/dbt/finance"),
+    ]
+    return templates.TemplateResponse("home.html", {"request": request, "projects": projects})
+
+
+@app.get("/preview/projects/{project_id}", response_class=HTMLResponse)
+def preview_project(request: Request, project_id: int):  # type: ignore[no-untyped-def]
+    project = SimpleNamespace(
+        id=project_id,
+        name="Marketing Warehouse" if project_id == 1 else "Finance Lakehouse",
+        root_path="/srv/dbt/marketing" if project_id == 1 else "/srv/dbt/finance",
+        dbt_version="1.8.6" if project_id == 1 else "1.7.13",
+        profiles_dir="/home/app/.dbt",
+        extra_packages="dbt-postgres==1.8.6, dbt-redshift==1.8.6",
+    )
+    now = datetime.utcnow()
+    jobs = [
+        SimpleNamespace(id=301, project_id=project_id, job_type="install", status="success", started_at=now - timedelta(hours=6), finished_at=now - timedelta(hours=6, minutes=2), log_path=None),
+        SimpleNamespace(id=302, project_id=project_id, job_type="evaluate", status="success", started_at=now - timedelta(hours=5), finished_at=now - timedelta(hours=5, minutes=1), log_path=None),
+        SimpleNamespace(id=303, project_id=project_id, job_type="evaluate", status="failed", started_at=now - timedelta(hours=3), finished_at=now - timedelta(hours=3, minutes=1), log_path=None),
+        SimpleNamespace(id=304, project_id=project_id, job_type="evaluate", status="running", started_at=now - timedelta(minutes=10), finished_at=None, log_path=None),
+    ]
+    stats = {
+        "models": 128,
+        "tests": 420,
+        "snapshots": 6,
+        "analyses": 4,
+        "seeds": 12,
+        "sources": 23,
+        "macros": 37,
+        "exposures": 5,
+        "metrics": 9,
+        "packages": 3,
+    }
+    return templates.TemplateResponse("project_detail.html", {"request": request, "project": project, "jobs": jobs, "stats": stats})
